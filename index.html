@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Claw Market — Prototype</title>
+<style>
+:root{--cyan:#32e5ff;--blue:#168ee9;--ink:#10345a;--panel:#eaf8ff}
+*{box-sizing:border-box} body{margin:0;font-family:Inter,system-ui,Arial,sans-serif;background:radial-gradient(circle at 50% 10%,#e9fbff,#bfeaff 55%,#8bd8f6);color:var(--ink);overflow:hidden}
+#app{height:100vh;display:flex;flex-direction:column}
+.top{height:68px;display:flex;align-items:center;justify-content:space-between;padding:0 18px;background:rgba(255,255,255,.84);backdrop-filter:blur(10px);box-shadow:0 3px 18px #168ee933;z-index:10}
+.brand{font-weight:900;letter-spacing:1.5px;font-size:20px;color:#159bd8}.coins{font-weight:900;background:#fff;border:2px solid #a8e8ff;padding:9px 14px;border-radius:18px}
+.tabs{height:58px;display:flex;justify-content:center;gap:8px;padding:8px;background:rgba(255,255,255,.62);z-index:10}.tab{border:0;border-radius:15px;padding:10px 16px;background:#d9f5ff;color:#236183;font-weight:800;cursor:pointer}.tab.active{background:#24cfe9;color:white;box-shadow:0 5px 14px #1bbfe955}
+.screen{flex:1;min-height:0;position:relative;overflow:hidden}
+.machine-wrap{position:absolute;inset:0;display:flex;justify-content:center;align-items:center}
+.machine{position:relative;height:min(92vh,760px);aspect-ratio:1024/1536;filter:drop-shadow(0 18px 30px #0a5f8830)}
+.machine>img{width:100%;height:100%;object-fit:contain}
+.chamber{position:absolute;left:21.5%;right:20.5%;top:17%;height:46%;overflow:hidden;pointer-events:none}
+.chamber-cover{position:absolute;inset:0;background:linear-gradient(180deg,#70d6fa 0%,#48bff0 52%,#2aa9e5 100%);opacity:.92}
+.floor{position:absolute;left:2%;right:2%;bottom:4%;height:17%;background:linear-gradient(#a8e8fa,#61c4e8);border:2px solid #bcefff;border-radius:8px;box-shadow:inset 0 10px 25px #ffffff55}
+.items{position:absolute;inset:5% 3% 11%;pointer-events:none}
+.item{position:absolute;width:23%;aspect-ratio:1;object-fit:contain;filter:drop-shadow(0 6px 4px #126a9338);transition:transform .15s}
+.claw{position:absolute;width:23%;height:auto;top:4%;left:35%;z-index:8;pointer-events:none;transform:translateX(0);transition:left .08s linear}
+.status{position:absolute;left:50%;top:4%;transform:translateX(-50%);background:#ffffffdf;border:2px solid #8ceaff;border-radius:20px;padding:7px 14px;font-weight:900;z-index:12;white-space:nowrap}
+.controls{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);z-index:15;display:flex;gap:10px;align-items:center}
+.control-btn{border:0;border-radius:18px;padding:13px 18px;background:#fff;color:#116c9c;font-weight:900;box-shadow:0 7px 20px #075d8b33;cursor:pointer}
+.control-btn.primary{background:#ff6fc8;color:#fff}.control-btn:disabled{opacity:.5;cursor:not-allowed}
+.panel{height:100%;padding:26px;display:none;overflow:auto}.panel.active{display:block}.panel h1{margin-top:0}.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px}.card{background:#ffffffd9;border:2px solid #b8ecfb;border-radius:20px;padding:12px;box-shadow:0 8px 20px #0a6c8b18}.card img{width:100%;height:110px;object-fit:contain}.card b{display:block}.sell{margin-top:8px;width:100%;border:0;border-radius:12px;padding:9px;background:#19c9e9;color:#fff;font-weight:900;cursor:pointer}
+.machine-select{display:grid;place-items:center;height:100%;text-align:center}.machine-select .hero{max-width:390px}.hero img{width:100%;border-radius:24px;box-shadow:0 18px 35px #075d8b30}.hero button{margin-top:15px;border:0;border-radius:18px;padding:14px 28px;background:#18cde9;color:white;font-weight:900;font-size:17px}
+@media(max-width:700px){.top{height:58px}.tabs{height:52px}.tab{padding:8px 10px;font-size:12px}.machine{height:min(88vh,700px);width:95vw}.controls{bottom:3px}.control-btn{padding:11px 12px}.status{font-size:12px}}
+</style>
+</head>
+<body>
+<div id="app">
+<header class="top"><div class="brand">CLAW MARKET</div><div class="coins">🪙 <span id="coins">250</span></div></header>
+<nav class="tabs">
+<button class="tab active" data-tab="play">🎰 Автоматы</button>
+<button class="tab" data-tab="inventory">🎒 Инвентарь</button>
+<button class="tab" data-tab="collection">📖 Коллекция</button>
+</nav>
+<main class="screen">
+<section id="play" class="panel active">
+<div class="machine-wrap">
+<div class="machine" id="machine">
+<img src="assets/machine.png">
+<div class="chamber">
+<div class="chamber-cover"></div><div class="floor"></div><div class="items" id="items"></div>
+<img class="claw" id="claw" src="assets/claw.png">
+<div class="status" id="status">Готово · попытка 20 🪙</div>
+</div>
+</div>
+<div class="controls">
+<button class="control-btn" id="left">←</button>
+<button class="control-btn" id="right">→</button>
+<button class="control-btn primary" id="grab">СХВАТИТЬ</button>
+</div>
+</div>
+</section>
+<section id="inventory" class="panel"><h1>🎒 Инвентарь</h1><p>Выигранные предметы можно продавать за монеты.</p><div class="grid" id="inventoryGrid"></div></section>
+<section id="collection" class="panel"><h1>📖 Коллекция</h1><p>Открытые предметы остаются в коллекции навсегда.</p><div class="grid" id="collectionGrid"></div></section>
+</main>
+</div>
+<script>
+const items = [
+["teddy","Мишка","common",30],["frog","Лягушка","common",35],["cat","Кот","common",40],["bunny","Заяц","common",45],
+["chick","Утёнок","common",30],["octopus","Осьминог","common",35],["puppy","Щенок","common",45],["fox","Лисёнок","common",50],
+["panda","Панда","common",55],["penguin","Пингвин","common",50],["headphones","Наушники","uncommon",120],
+["controller","Геймпад","uncommon",130],["speaker","Колонка","uncommon",90],["watch","Умные часы","uncommon",110],
+["backpack","Мини-рюкзак","uncommon",80],["phone","Смартфон","rare",350],["console","Портативная консоль","rare",450],
+["camera","Камера","rare",400],["crystal","Кристальный мишка","epic",800],["crown","Золотая корона","legendary",1500]
+].map(x=>({id:x[0],name:x[1],rarity:x[2],value:x[3],src:"assets/items/"+x[0]+".png"}));
+const PRICE=20;
+let state=JSON.parse(localStorage.getItem("clawState")||'null')||{coins:250,inventory:[],collection:[],plays:0};
+let clawX=.35, busy=false, target=null;
+const $=s=>document.querySelector(s), coins=$("#coins"), status=$("#status"), claw=$("#claw"), itemsBox=$("#items");
+function save(){localStorage.setItem("clawState",JSON.stringify(state));coins.textContent=state.coins}
+function weightedPick(){let r=Math.random(); if(r<.68)return items.filter(i=>i.rarity==="common")[Math.floor(Math.random()*10)]; if(r<.90)return items.filter(i=>i.rarity==="uncommon")[Math.floor(Math.random()*5)]; if(r<.985)return items.filter(i=>i.rarity==="rare")[Math.floor(Math.random()*3)]; return Math.random()<.8?items[18]:items[19]}
+function renderItems(){
+ itemsBox.innerHTML="";
+ const chosen=[];
+ for(let i=0;i<13;i++) chosen.push(weightedPick());
+ chosen.forEach((it,i)=>{
+   const el=document.createElement("img"); el.className="item"; el.src=it.src; el.dataset.id=it.id;
+   const x=3+(i%5)*19+(Math.random()*8-4), y=28+Math.floor(i/5)*22+(Math.random()*8-4);
+   el.style.left=x+"%"; el.style.bottom=y+"%"; el.style.transform=`rotate(${Math.random()*24-12}deg)`;
+   el.style.width=(18+Math.random()*9)+"%"; itemsBox.appendChild(el);
+ });
+}
+function move(dx){if(busy)return; clawX=Math.max(.04,Math.min(.77,clawX+dx));claw.style.left=(clawX*100)+"%"}
+function setStatus(t){status.textContent=t}
+function grab(){
+ if(busy||state.coins<PRICE)return;
+ state.coins-=PRICE; state.plays++; save(); busy=true; $("#grab").disabled=true;
+ setStatus("Опускаем клешню…");
+ target=[...itemsBox.querySelectorAll(".item")].sort((a,b)=>Math.abs(a.getBoundingClientRect().left+a.getBoundingClientRect().width/2-(claw.getBoundingClientRect().left+claw.getBoundingClientRect().width/2))-Math.abs(b.getBoundingClientRect().left+b.getBoundingClientRect().width/2-(claw.getBoundingClientRect().left+claw.getBoundingClientRect().width/2)))[0];
+ const near=target && Math.abs((target.getBoundingClientRect().left+target.getBoundingClientRect().width/2)-(claw.getBoundingClientRect().left+claw.getBoundingClientRect().width/2))<55;
+ claw.animate([{top:"4%"},{top:"46%"},{top:"4%"}],{duration:1200,easing:"ease-in-out"});
+ setTimeout(()=>{
+   const chance=near?.62:.10;
+   const success=Math.random()<chance;
+   if(success&&target){
+     const it=items.find(i=>i.id===target.dataset.id);
+     state.inventory.push(it.id); if(!state.collection.includes(it.id))state.collection.push(it.id); save();
+     target.style.transform+=" scale(1.15)"; target.style.zIndex=20;
+     setStatus("🎉 Поймано: "+it.name+" · "+it.value+" 🪙");
+   }else setStatus(near?"Почти! Предмет выскользнул 😭":"Мимо! Наведи клешню точнее.");
+   setTimeout(()=>{busy=false;$("#grab").disabled=false;renderItems();},900);
+ },1100);
+}
+$("#left").onclick=()=>move(-.055);$("#right").onclick=()=>move(.055);$("#grab").onclick=grab;
+document.addEventListener("keydown",e=>{if(e.key==="ArrowLeft"||e.key==="a")move(-.055);if(e.key==="ArrowRight"||e.key==="d")move(.055);if(e.code==="Space")grab()});
+document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>{document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));b.classList.add("active");document.querySelectorAll(".panel").forEach(x=>x.classList.remove("active"));$("#"+b.dataset.tab).classList.add("active");if(b.dataset.tab==="inventory")renderInventory();if(b.dataset.tab==="collection")renderCollection()});
+function card(it,owned,invIndex){return `<div class="card"><img src="${it.src}"><b>${it.name}</b><small>${it.value} 🪙 · ${it.rarity}</small>${owned&&invIndex!==undefined?`<button class="sell" onclick="sell(${invIndex})">ПРОДАТЬ · ${it.value} 🪙</button>`:""}</div>`}
+function renderInventory(){const g=$("#inventoryGrid");g.innerHTML=state.inventory.length?state.inventory.map((id,i)=>card(items.find(x=>x.id===id),true,i)).join(""):"<p>Пока пусто. Иди за первым призом!</p>"}
+function renderCollection(){const g=$("#collectionGrid");g.innerHTML=items.map(it=>state.collection.includes(it.id)?card(it,false):`<div class="card"><div style="height:110px;display:grid;place-items:center;font-size:44px">❔</div><b>Неизвестный приз</b><small>Открыто: нет</small></div>`).join("")}
+function sell(i){const id=state.inventory[i],it=items.find(x=>x.id===id);state.coins+=it.value;state.inventory.splice(i,1);save();renderInventory()}
+save();renderItems();
+</script>
+</body>
+</html>
